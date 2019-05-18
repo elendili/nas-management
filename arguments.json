@@ -1,0 +1,11 @@
+{
+  "local_root": "/Volumes/",
+  "remote_root": "/volume1/",
+  "///_input_folders": [
+    "for-import-on-nas/photolibrary","for-import-on-nas/photoslibrary"
+  ],
+  "input_folders": [
+    "for-import-on-nas/iPhoto_from_recycle_bin"
+  ],
+  "output_folder": "for-import-on-nas/hithere2"
+}
