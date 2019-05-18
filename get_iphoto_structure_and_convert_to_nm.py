@@ -11,6 +11,7 @@ import glob
 import json
 import logging
 import sys
+import os
 from pathlib import Path
 
 import spur
@@ -21,9 +22,9 @@ connection_data = {"hostname": "192.168.1.36", "username": "elendili",
                    "private_key_file": "/Users/elendili/.ssh/id_rsa"}
 
 
-def get_file_datetime(file_path, src_folder):
+def get_file_datetime(file_path):
     exif_date = get_exif_date(file_path)
-    folder_date = get_date_from_folder_path(src_folder, file_path)
+    folder_date = get_date_from_folder_path(file_path)
     if exif_date:
         return exif_date
     elif folder_date:
@@ -57,8 +58,8 @@ def are_equal(f1, f2):
 
 
 def process_file(root, file):
-    input_path = str(Path(root).joinpath(file))
-    file_datetime = get_file_datetime(input_path, local_input_folder)
+    input_path = os.path.join(root, file)
+    file_datetime = get_file_datetime(input_path)
     if file_datetime:
         epoch_time = file_datetime.timestamp()
         logging.info("update time of %s to %s " %

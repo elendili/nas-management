@@ -1,7 +1,6 @@
 import datetime
 import filecmp
 import hashlib
-import os
 import re
 import time
 
@@ -22,19 +21,20 @@ def compare_files(filename1, filename2):
     return filecmp.cmp(filename1, filename2)
 
 
-def get_date_from_folder_path(target_folder, file_path):
-    try:
-        for_extract = str(file_path).replace(target_folder, "")
-        # print(for_extract)
-        for_extract2 = list(filter(None, for_extract.split(os.sep)))[:3]
-        # print(for_extract2)
-        f_year, f_month, f_day = map(int, for_extract2)
-        # print(f_year, f_month, f_day)
-        out = datetime.datetime(year=f_year, month=f_month, day=f_day)
-        return out
-    except Exception as e:
-        print(e)
+def get_date_from_folder_path(file_path):
+    file_path = str(file_path)
+    found1 = re.search(r"\D\d{2}\D\d{2}\D20\d{2}\D", file_path)
+    found2 = re.search(r"\D20\d{2}\D\d{2}\D\d{2}\D", file_path)
+    if found1:
+        s = filter(None, re.split(r"\D+", found1.group(0)))
+        f_day, f_month, f_year = map(int, s)
+    elif found2:
+        s = filter(None, re.split(r"\D+", found2.group(0)))
+        f_year, f_month, f_day = map(int, s)
+    else:
         return None
+    out = datetime.datetime(year=f_year, month=f_month, day=f_day)
+    return out
 
 
 def get_exif_date(file_path):
@@ -80,20 +80,3 @@ def add_suffix_to_file(file, exif_date):
 
 def current_milli_time():
     return int(round(time.time() * 1000))
-
-
-def connect():
-    import spur
-    connection_data = {"hostname": "192.168.1.36", "username": "elendili",
-                       "private_key_file": "/Users/elendili/.ssh/id_rsa"}
-    with spur.SshShell(**connection_data) as shell:
-        result = shell.run(["pwd"])
-        print(result.output)
-        result = shell.run(["ls"])
-        print(str(result.output).split("\\n"))
-        result = shell.run(["cp", "-l", "process_duplicates.py", "process_duplicates.py2"])
-        print(str(result.output).split("\\n"))
-
-#
-# if __name__ == '__main__':
-#     connect()
