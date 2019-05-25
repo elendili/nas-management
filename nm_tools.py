@@ -23,7 +23,7 @@ def compare_files(filename1, filename2):
 
 def get_date_from_folder_path(file_path):
     file_path = str(file_path)
-    found1 = re.search(r"\D\d{2}\D\d{2}\D20\d{2}\D", file_path)
+    found1 = re.search(r"\D\d{2}(\D)\d{2}\1{1}20\d{2}\1", file_path)
     found2 = re.search(r"\D20\d{2}\D\d{2}\D\d{2}\D", file_path)
     if found1:
         s = filter(None, re.split(r"\D+", found1.group(0)))
