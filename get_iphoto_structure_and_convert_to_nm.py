@@ -21,6 +21,25 @@ connection_data = {"hostname": "192.168.1.36", "username": "elendili",
                    "private_key_file": "/Users/elendili/.ssh/id_rsa"}
 
 
+def migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime):
+    output_path = os.path.join(new_root, file)
+    if exists(output_path):
+        globbed_file = re.sub(r"(\.\w+$)", r"*\1", file)
+        globbed_path = os.path.join(new_root, globbed_file)
+        globbed_paths = glob.glob(globbed_path)
+        for gp in globbed_paths:
+            if are_equal(input_path, gp):
+                logging.info("Skip %s because total duplicate exists in output"
+                             % Path(input_path).relative_to(local_input_folder))
+                break
+        else:
+            new_file = add_suffix_to_file(file, file_datetime)
+            output_path = os.path.join(new_root, new_file)
+            migrate_file(input_path, output_path)
+    else:
+        migrate_file(input_path, output_path)
+
+
 def migrate_file(src_path, new_path):
     os.makedirs(os.path.dirname(new_path), exist_ok=True)
     input_file = src_path.replace(local_root, remote_root)
@@ -58,34 +77,15 @@ def process_file(root, file):
                                 "%02d" % file_datetime.month,
                                 "%02d" % file_datetime.day)
         os.makedirs(new_root, exist_ok=True)
-        output_path = os.path.join(new_root, file)
-        if exists(output_path):
-            globbed_file = re.sub(r"(\.\w+$)", r"*\1", file)
-            globbed_path = os.path.join(new_root, globbed_file)
-            globbed_paths = glob.glob(globbed_path)
-            for gp in globbed_paths:
-                if are_equal(input_path, gp):
-                    logging.info("Skip %s because total duplicate exists in output"
-                                 % Path(input_path).relative_to(local_input_folder))
-                    break
-            else:
-                new_file = add_suffix_to_file(file, file_datetime)
-                output_path = os.path.join(new_root, new_file)
-                migrate_file(input_path, output_path)
-        else:
-            migrate_file(input_path, output_path)
+        migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime)
     else:
+        new_root = os.path.join(local_output_folder, "unknown")
         logging.warning("File has no date info " + input_path)
-        output_path = os.path.join(local_output_folder, "unknown", file)
-        if exists(output_path):
-            new_file = add_suffix_to_file(file, file_datetime)
-            output_path = os.path.join(local_output_folder, "unknown", new_file)
-        migrate_file(input_path, output_path)
-    # exit(1)
+        migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime)
 
 
 def process_folder():
-    for root, dirs, files in os.walk(local_input_folder):
+    for root, dirs, files in os.walk(local_input_folder, onerror=on_error):
         if '@eaDir' not in root:
             for file in files:
                 if not file.startswith("."):
@@ -101,6 +101,11 @@ def prepare_logging():
                         level=logging.INFO,
                         format="%(asctime)s %(levelname)s %(message)s")
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
+
+def on_error(error):
+    logging.error(error)
+    raise error
 
 
 if __name__ == "__main__":

@@ -2,13 +2,13 @@
   "local_root": "/Volumes/",
   "remote_root": "/volume1/",
   "input_folders": [
-    "for-import-on-nas/Katya"
+    "for-import-on-nas/from-Katya-folder/Risunki_i_foto/Fotki"
   ],
   "/input_folders": [
     "for-import-on-nas/photolibrary",
     "for-import-on-nas/photoslibrary",
     "for-import-on-nas/iPhoto_from_recycle_bin"
   ],
-  "output_folder": "for-import-on-nas/from-Katya-folder",
+  "output_folder": "for-import-on-nas/from-Katya-folder-output",
   "/output_folder": "photo/byYears"
 }

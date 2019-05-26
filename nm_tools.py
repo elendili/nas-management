@@ -2,6 +2,7 @@ import datetime
 import filecmp
 import hashlib
 import logging
+import os
 import re
 import time
 
@@ -22,16 +23,28 @@ def compare_files(filename1, filename2):
     return filecmp.cmp(filename1, filename2)
 
 
+def get_file_modification_date(file_path):
+    mtime = os.path.getmtime(file_path)
+    out = datetime.datetime.fromtimestamp(mtime)
+    period = out - datetime.datetime.now()
+    if abs(period.days) > 40:
+        return out
+    else:
+        return None
+
+
 def get_file_datetime(file_path):
     exif_date = get_exif_date(file_path)
+    file_modification_date = get_file_modification_date(file_path)
     folder_date = get_date_from_folder_path(file_path)
     if exif_date:
         return exif_date
+    if file_modification_date:
+        return file_modification_date
     elif folder_date:
         return folder_date
     else:
         logging.error("No exif or folder date to extract for " + file_path)
-    pass
 
 
 def get_date_from_folder_path(file_path):
