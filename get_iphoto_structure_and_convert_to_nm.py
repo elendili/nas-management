@@ -9,9 +9,8 @@ Script updates file access/modification date from
 """
 import glob
 import json
-import logging
-import sys
 import os
+import sys
 from pathlib import Path
 
 import spur
@@ -20,18 +19,6 @@ from nm_tools import *
 
 connection_data = {"hostname": "192.168.1.36", "username": "elendili",
                    "private_key_file": "/Users/elendili/.ssh/id_rsa"}
-
-
-def get_file_datetime(file_path):
-    exif_date = get_exif_date(file_path)
-    folder_date = get_date_from_folder_path(file_path)
-    if exif_date:
-        return exif_date
-    elif folder_date:
-        return folder_date
-    else:
-        logging.error("No exif or folder date to extract for " + file_path)
-    pass
 
 
 def migrate_file(src_path, new_path):

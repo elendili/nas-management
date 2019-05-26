@@ -1,6 +1,7 @@
 import datetime
 import filecmp
 import hashlib
+import logging
 import re
 import time
 
@@ -21,6 +22,18 @@ def compare_files(filename1, filename2):
     return filecmp.cmp(filename1, filename2)
 
 
+def get_file_datetime(file_path):
+    exif_date = get_exif_date(file_path)
+    folder_date = get_date_from_folder_path(file_path)
+    if exif_date:
+        return exif_date
+    elif folder_date:
+        return folder_date
+    else:
+        logging.error("No exif or folder date to extract for " + file_path)
+    pass
+
+
 def get_date_from_folder_path(file_path):
     file_path = str(file_path)
     found1 = re.search(r"\D\d{2}(\D)\d{2}\1{1}20\d{2}\1", file_path)
@@ -33,8 +46,14 @@ def get_date_from_folder_path(file_path):
         f_year, f_month, f_day = map(int, s)
     else:
         return None
-    out = datetime.datetime(year=f_year, month=f_month, day=f_day)
-    return out
+    if f_month > 12:
+        f_month, f_day = f_day, f_month
+    try:
+        out = datetime.datetime(year=f_year, month=f_month, day=f_day)
+        return out
+    except Exception as e:
+        logging.error("Error on extracting date from " + file_path, exc_info=e)
+        raise e
 
 
 def get_exif_date(file_path):
@@ -52,19 +71,30 @@ def get_exif_date(file_path):
                 for k, v in exif_dict.items()
                 if k in PIL.ExifTags.TAGS
             }
+
             # [EXIF: ExifIFD]  CreateDate
-            if 'DateTime' in exif:
-                exif_d = exif['DateTime']
-                if '0000:00:00 00:00:00' == exif_d:
-                    out = None
-                else:
-                    out = datetime.datetime.strptime(exif_d, '%Y:%m:%d %H:%M:%S')
+            def get_date_for_exif_key(exif_key):
+                if exif_key in exif:
+                    exif_v = exif[exif_key]
+                    if '0000:00:00 00:00:00' != exif_v:
+                        try:
+                            return datetime.datetime.strptime(exif_v, '%Y:%m:%d %H:%M:%S')
+                        except Exception as ex:
+                            logging.error("Error on extracting exif date from " +
+                                          file_path + ", exif_date: " + exif_v, exc_info=ex)
+                            return None
+
+            date_keys = ['DateTime', 'DateTimeOriginal']
+            date_key_values = list(filter(None, map(get_date_for_exif_key, date_keys)))
+            if date_key_values:
+                return date_key_values[0]
             else:
                 out = None
                 if "Date" in str.join(",", exif.keys()):
-                    print(file_path)
-                    print(exif)
-                    print("Error here, but Date exists")
+                    print("===================== Error here, but Date exists")
+                    print("path:", file_path)
+                    print("exif", exif)
+                    print("=====================")
 
             return out
 
