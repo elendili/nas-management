@@ -27,7 +27,7 @@ def get_file_modification_date(file_path):
     mtime = os.path.getmtime(file_path)
     out = datetime.datetime.fromtimestamp(mtime)
     period = out - datetime.datetime.now()
-    if abs(period.days) > 40:
+    if abs(period.days) > 365:
         return out
     else:
         return None
@@ -97,7 +97,7 @@ def get_exif_date(file_path):
                                           file_path + ", exif_date: " + exif_v, exc_info=ex)
                             return None
 
-            date_keys = ['DateTime', 'DateTimeOriginal']
+            date_keys = ['DateTime', 'DateTimeOriginal', 'DateTimeDigitized']
             date_key_values = list(filter(None, map(get_date_for_exif_key, date_keys)))
             if date_key_values:
                 return date_key_values[0]

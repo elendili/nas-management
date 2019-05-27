@@ -41,12 +41,13 @@ def migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime):
 
 
 def migrate_file(src_path, new_path):
+    assert not os.path.exists(new_path), "file should not exist: "+new_path
     os.makedirs(os.path.dirname(new_path), exist_ok=True)
     input_file = src_path.replace(local_root, remote_root)
     output_file = new_path.replace(local_root, remote_root)
     logging.info("Link %s to %s" % (input_file, output_file))
     try:
-        shell.run(["cp", "-lp", input_file, output_file])
+        shell.run(["cp", "-lnp", input_file, output_file])
     except Exception as e:
         raise e
 
