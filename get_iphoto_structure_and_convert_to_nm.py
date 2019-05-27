@@ -49,7 +49,7 @@ def migrate_file(src_path, new_path):
     try:
         shell.run(["cp", "-lnp", input_file, output_file])
     except Exception as e:
-        raise e
+        on_error(e)
 
 
 def exists(file):

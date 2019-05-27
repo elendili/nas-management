@@ -2,7 +2,7 @@
   "local_root": "/Volumes/",
   "remote_root": "/volume1/",
   "input_folders": [
-    "for-import-on-nas/from-Katya-folder-output"
+    "for-import-on-nas/all-three"
   ],
   "/input_folders": [
     "for-import-on-nas/photolibrary",
