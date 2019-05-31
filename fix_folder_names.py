@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# preocess results of
-# find . ! -empty -type f -exec md5sum {} + | sort | uniq -w32 -dD | tee ../logdupes
 import os
 import re
 import sys
