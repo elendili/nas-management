@@ -7,9 +7,9 @@ Script checks if destination has duplicate by size/content
 and name started from original file name.
 Script updates file access/modification date from
 """
+import atexit
 import glob
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -20,10 +20,12 @@ from nm_tools import *
 connection_data = {"hostname": "192.168.1.36", "username": "elendili",
                    "private_key_file": "/Users/elendili/.ssh/id_rsa"}
 
+timings = []
+
 
 def migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime):
     output_path = os.path.join(new_root, file)
-    if exists(output_path):
+    if remote_exists(output_path):
         globbed_file = re.sub(r"(\.\w+$)", r"*\1", file)
         globbed_path = os.path.join(new_root, globbed_file)
         globbed_paths = glob.glob(globbed_path)
@@ -32,6 +34,7 @@ def migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime):
                 logging.info("Skip %s because total duplicate exists in output"
                              % Path(input_path).relative_to(local_input_folder))
                 break
+
         else:
             new_file = add_suffix_to_file(file, file_datetime)
             output_path = os.path.join(new_root, new_file)
@@ -41,7 +44,7 @@ def migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime):
 
 
 def migrate_file(src_path, new_path):
-    assert not os.path.exists(new_path), "file should not exist: "+new_path
+    assert not remote_exists(new_path), "file should not exist: " + new_path
     os.makedirs(os.path.dirname(new_path), exist_ok=True)
     input_file = src_path.replace(local_root, remote_root)
     output_file = new_path.replace(local_root, remote_root)
@@ -52,16 +55,35 @@ def migrate_file(src_path, new_path):
         on_error(e)
 
 
-def exists(file):
-    remote_file = file.replace(local_root, remote_root)
-    result = shell.run(["test", "-e", remote_file], allow_error=True)
-    out = result.return_code == 0
+def remote_file_size(file):
+    try:
+        return os.stat(file).st_size
+    except:
+        remote_file = file.replace(local_root, remote_root)
+        result = shell.run(["stat", "-c", "%s", remote_file])
+        out = int(result.output)
+        return out
+
+
+def remote_exists(file):
+    try:
+        out = Path(file).exists()
+    except:
+        remote_file = file.replace(local_root, remote_root)
+        result = shell.run(["test", "-e", remote_file], allow_error=True)
+        out = result.return_code == 0
     return out
 
 
 def are_equal(f1, f2):
-    return os.path.getsize(f1) == os.path.getsize(f2) \
-           and compare_files(f1, f2)
+    f1, f2 = map(str, (f1, f2))
+    size1 = remote_file_size(f1)
+    size2 = remote_file_size(f2)
+    if size1 == size2:
+        out = are_files_equal_by_content(f1, f2)
+        return out
+    else:
+        return False
 
 
 def process_file(root, file):
@@ -71,8 +93,8 @@ def process_file(root, file):
         epoch_time = file_datetime.timestamp()
         logging.info("update time of %s to %s " %
                      (Path(input_path).relative_to(local_input_folder), file_datetime))
-        os.utime(input_path, (epoch_time, epoch_time))
 
+        os.utime(input_path, (epoch_time, epoch_time))
         new_root = os.path.join(local_output_folder,
                                 "%04d" % file_datetime.year,
                                 "%02d" % file_datetime.month,
@@ -86,11 +108,17 @@ def process_file(root, file):
 
 
 def process_folder():
+    counter = 0
     for root, dirs, files in os.walk(local_input_folder, onerror=on_error):
         if '@eaDir' not in root:
             for file in files:
                 if not file.startswith("."):
                     process_file(root, file)
+                    counter += 1
+                    if counter > 20:
+                        pass
+                        # exit()
+
 
 
 def prepare_logging():
@@ -109,8 +137,18 @@ def on_error(error):
     raise error
 
 
+def exit_f():
+    if timings:
+        print("Timings sum:", sum(timings))
+        print("Average time:", sum(timings) / len(timings))
+    print("Total time:", current_milli_time() - start_execution_time)
+
+
+start_execution_time = current_milli_time()
+
 if __name__ == "__main__":
     prepare_logging()
+    atexit.register(exit_f)
     assert len(sys.argv) > 1, "define path to arguments file"
     arg_file = sys.argv[1]
     logging.info("Arg file: " + arg_file)
@@ -122,7 +160,7 @@ if __name__ == "__main__":
             output_folder = data["output_folder"]
             for input_folder in data["input_folders"]:
                 local_input_folder = os.path.join(local_root, input_folder)
-                assert exists(local_input_folder), "input folder " + local_input_folder + " not exist"
+                assert remote_exists(local_input_folder), "input folder " + local_input_folder + " not exist"
                 local_output_folder = os.path.join(local_root, output_folder)
                 remote_input_folder = os.path.join(remote_root, input_folder)
                 remote_output_folder = os.path.join(remote_root, output_folder)

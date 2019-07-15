@@ -19,8 +19,9 @@ def get_md5(file):
     return hash_md5.hexdigest()
 
 
-def compare_files(filename1, filename2):
-    return filecmp.cmp(filename1, filename2)
+def are_files_equal_by_content(filename1, filename2):
+    out = filecmp.cmp(filename1, filename2)
+    return out
 
 
 def get_file_modification_date(file_path):
