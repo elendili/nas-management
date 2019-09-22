@@ -75,7 +75,11 @@ def get_exif_date(file_path):
     if not file_path.endswith(".MOV") and not file_path.endswith(".PNG"):
         try:
             img = PIL.Image.open(file_path)
-            exif_dict = img._getexif()
+            if hasattr(img, "_getexif"):
+                exif_dict = img._getexif()
+            else:
+                print("no exif data on", file_path)
+                return None
         except Exception as e:
             print(file_path, e, sep="\n")
             return None
@@ -92,14 +96,18 @@ def get_exif_date(file_path):
                     exif_v = exif[exif_key]
                     if '0000:00:00 00:00:00' != exif_v:
                         try:
-                            return datetime.datetime.strptime(exif_v, '%Y:%m:%d %H:%M:%S')
+                            return datetime.datetime.strptime(exif_v,
+                                                              '%Y:%m:%d %H:%M:%S')
                         except Exception as ex:
-                            logging.error("Error on extracting exif date from " +
-                                          file_path + ", exif_date: " + exif_v, exc_info=ex)
+                            logging.error(
+                                "Error on extracting exif date from " +
+                                file_path + ", exif_date: " + exif_v,
+                                exc_info=ex)
                             return None
 
             date_keys = ['DateTime', 'DateTimeOriginal', 'DateTimeDigitized']
-            date_key_values = list(filter(None, map(get_date_for_exif_key, date_keys)))
+            date_key_values = list(
+                filter(None, map(get_date_for_exif_key, date_keys)))
             if date_key_values:
                 return date_key_values[0]
             else:
@@ -118,7 +126,8 @@ def add_suffix_to_file(file, exif_date):
         suffix = re.sub(r"\D", "", str(exif_date))
     else:
         suffix = "no_exif"
-    new_file = file.replace(".", "_" + suffix + "_" + str(current_milli_time()) + ".")
+    new_file = file.replace(".", "_" + suffix + "_" + str(
+        current_milli_time()) + ".")
     return new_file
 
 
