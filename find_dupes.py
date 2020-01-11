@@ -12,8 +12,8 @@ from timeit import default_timer as timer
 from nm_tools import (get_exif_date, get_date_from_folder_path, 
     exists, join, dirname, basename, getsize)
 
-duplicates_file_name = 'duplicates-by-size.json'
-categorized_duplicates_file_name = 'duplicates-categorized.json'
+duplicates_file_name = 'tmp/duplicates-by-size.json'
+categorized_duplicates_file_name = 'tmp/duplicates-categorized.json'
 
 
 def find_dupes_by_size():
