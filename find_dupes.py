@@ -9,14 +9,15 @@ from collections import defaultdict
 from datetime import timedelta
 from timeit import default_timer as timer
 
-from nm_tools import get_exif_date, get_date_from_folder_path
+from nm_tools import (get_exif_date, get_date_from_folder_path, 
+    exists, join, dirname, basename, getsize)
 
 duplicates_file_name = 'duplicates-by-size.json'
 categorized_duplicates_file_name = 'duplicates-categorized.json'
 
 
 def find_dupes_by_size():
-    if not os.path.exists(duplicates_file_name):
+    if not exists(duplicates_file_name):
 
         target_folder = sys.argv[1]
         if not target_folder:
@@ -28,8 +29,9 @@ def find_dupes_by_size():
         for root, dirs, files in os.walk(target_folder):
             if '@eaDir' not in root:
                 for file in files:
-                    path = os.path.join(root, file)
-                    size = os.path.getsize(path)
+                    path = join(root, file)
+                    assert exists(path), path+" not found"
+                    size = getsize(path)
                     by_size[size].append(path)
                     if len(by_size) % 500 == 0:
                         print(timedelta(seconds=timer() - start),
@@ -45,8 +47,8 @@ def find_dupes_by_size():
 
 
 def categorize_dupes():
-    if os.path.exists(duplicates_file_name) \
-            and not os.path.exists(categorized_duplicates_file_name):
+    if exists(duplicates_file_name) \
+            and not exists(categorized_duplicates_file_name):
         start = timer()
         with open(duplicates_file_name, 'r') as infile:
             by_size_same_size = json.load(infile)
@@ -56,7 +58,7 @@ def categorize_dupes():
                   "files")
             out = defaultdict(dict)
             for _size, _paths1 in by_size_same_size.items():
-                _paths1 = list(filter(os.path.exists, _paths1))
+                _paths1 = list(filter(exists, _paths1))
                 for i, p1 in enumerate(_paths1[:-1]):
                     _paths2 = _paths1[i + 1:]
                     for p2 in _paths2:
@@ -86,7 +88,7 @@ def categorize_dupes():
 
 
 def clean_by_path_pattern(files, pos_pattern):
-    existing_files = list(filter(os.path.exists, files))
+    existing_files = list(filter(exists, files))
     if len(existing_files) > 1:
         by_pattern = list(filter(lambda x: pos_pattern in x, existing_files))
         if by_pattern and len(by_pattern) < len(existing_files):
@@ -98,16 +100,19 @@ def exif_date_equals_to_folder_date(f):
     exif = get_exif_date(f)
     if exif:
         from_folder = get_date_from_folder_path(f)
-        exif_to_compare = exif.replace(hour=0, minute=0, second=0)
-        from_folder_to_compare = from_folder.replace(hour=0, minute=0,
-                                                     second=0)
-        return exif_to_compare == from_folder_to_compare
+        if from_folder:
+            from_folder_to_compare = from_folder\
+                .replace(hour=0, minute=0,second=0)
+            exif_to_compare = exif\
+                .replace(hour=0, minute=0, second=0)
+
+            return exif_to_compare == from_folder_to_compare
     return False
 
 
-def clean_mismatches(files):
-    files = list(filter(os.path.exists, files))
-    if files:
+def clean_exif_folder_mismatches(files):
+    files = list(filter(exists, files))
+    if files and len(files) > 1:
         matches = {f: exif_date_equals_to_folder_date(f) for f in
                    files}
         if any(matches.values()):
@@ -122,34 +127,36 @@ def clean_mismatches(files):
                 print("ERROR: all file dupes matches file paths:",
                       files)
         else:
-            print("ERROR: no file path matches exif")
+            print("ERROR: no file path matches exif:",
+                  files)
     return files
 
 
-def clean_from_unknown(files):
-    files = list(filter(os.path.exists, files))
+def clean_in_unknown_folder(files):
+    files = list(filter(exists, files))
     if files:
         file_in_unknown = list(
-            filter(lambda x: os.path.basename(os.path.dirname(x)) == "unknown",
+            filter(lambda x: basename(dirname(x)) == "unknown",
                    files))
-        print("remove", file_in_unknown, "from", files)
-        while file_in_unknown and len(files) > 1:
-            f = file_in_unknown.pop()
-            files.remove(f)
-            os.remove(f)
+        if file_in_unknown:
+            print("remove", file_in_unknown, "from", files)
+            while file_in_unknown and len(files) > 1:
+                f = file_in_unknown.pop()
+                files.remove(f)
+                os.remove(f)
     return files
 
 
 def clean_in_same_folder(files):
-    files = list(filter(os.path.exists, files))
+    files = list(filter(exists, files))
     if files:
-        prefixes = Counter(map(os.path.dirname, files))
+        prefixes = Counter(map(dirname, files))
         excessive_prefixes = [k for k, v in prefixes.items() if v > 1]
         if excessive_prefixes:
             files_to_delete = list(sorted(
-                filter(os.path.exists,
+                filter(exists,
                        filter(
-                           lambda x: os.path.dirname(x) in excessive_prefixes,
+                           lambda x: dirname(x) in excessive_prefixes,
                            files))))
             if len(files_to_delete) > 1:
                 files_to_delete_x = files_to_delete[: -1]
@@ -161,16 +168,16 @@ def clean_in_same_folder(files):
 
 
 def clean_dupes():
-    if os.path.exists(categorized_duplicates_file_name):
+    if exists(categorized_duplicates_file_name):
         with open(categorized_duplicates_file_name, 'r') as infile2:
             print("remove files from", categorized_duplicates_file_name)
             dups = json.load(infile2)
             for index, v in enumerate(dups.values()):
                 for files in v.values():
                     files2 = clean_in_same_folder(files)
-                    files3 = clean_from_unknown(files2)
-                    files4 = clean_mismatches(files3)
-                    assert files4
+                    files3 = clean_in_unknown_folder(files2)
+                    files4 = clean_exif_folder_mismatches(files3)
+                    assert files4, "at least one file should exist after clean"
                     # clean_by_path_pattern(v2, "byYears/2019/04/23/")
 
 

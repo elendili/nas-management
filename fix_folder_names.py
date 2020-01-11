@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import os
-import re
 import sys
-
+from nm_tools import *
 from unidecode import unidecode
 
 target_folder = sys.argv[1]
@@ -23,8 +22,8 @@ def rename_loop(l):
     for index, old_e in enumerate(l):
         new_e = process_name(old_e)
         if new_e != old_e:
-            old_full_e = os.path.join(root, old_e)
-            new_full_e = os.path.join(root, new_e)
+            old_full_e = join(root, old_e)
+            new_full_e = join(root, new_e)
             os.rename(old_full_e, new_full_e)
             print(old_e, " -> ", new_e)
             l[index] = new_e

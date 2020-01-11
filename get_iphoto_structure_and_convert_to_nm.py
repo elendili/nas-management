@@ -9,6 +9,7 @@ Script updates file access/modification date from
 """
 import atexit
 import glob
+import os
 import json
 import sys
 from pathlib import Path
@@ -24,10 +25,10 @@ timings = []
 
 
 def migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime):
-    output_path = os.path.join(new_root, file)
+    output_path = join(new_root, file)
     if remote_exists(output_path):
         globbed_file = re.sub(r"(\.\w+$)", r"*\1", file)
-        globbed_path = os.path.join(new_root, globbed_file)
+        globbed_path = join(new_root, globbed_file)
         globbed_paths = glob.glob(globbed_path)
         for gp in globbed_paths:
             if are_equal(input_path, gp):
@@ -37,7 +38,7 @@ def migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime):
 
         else:
             new_file = add_suffix_to_file(file, file_datetime)
-            output_path = os.path.join(new_root, new_file)
+            output_path = join(new_root, new_file)
             migrate_file(input_path, output_path)
     else:
         migrate_file(input_path, output_path)
@@ -45,7 +46,7 @@ def migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime):
 
 def migrate_file(src_path, new_path):
     assert not remote_exists(new_path), "file should not exist: " + new_path
-    os.makedirs(os.path.dirname(new_path), exist_ok=True)
+    os.makedirs(dirname(new_path), exist_ok=True)
     input_file = src_path.replace(local_root, remote_root)
     output_file = new_path.replace(local_root, remote_root)
     logging.info("Link %s to %s" % (input_file, output_file))
@@ -87,24 +88,28 @@ def are_equal(f1, f2):
 
 
 def process_file(root, file):
-    input_path = os.path.join(root, file)
+    input_path = join(root, file)
     file_datetime = get_file_datetime(input_path)
+    # rename out file
+    new_file = re.sub(r"[()]+", "", file)
+    new_file = re.sub(r"\s+", "_", new_file)
     if file_datetime:
         epoch_time = file_datetime.timestamp()
         logging.info("update time of %s to %s " %
-                     (Path(input_path).relative_to(local_input_folder), file_datetime))
+                     (Path(input_path).relative_to(local_input_folder),
+                      file_datetime))
 
         os.utime(input_path, (epoch_time, epoch_time))
-        new_root = os.path.join(local_output_folder,
+        new_root = join(local_output_folder,
                                 "%04d" % file_datetime.year,
                                 "%02d" % file_datetime.month,
                                 "%02d" % file_datetime.day)
         os.makedirs(new_root, exist_ok=True)
-        migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime)
+        migrate_file_if_no_duplicate(input_path, new_root, new_file, file_datetime)
     else:
-        new_root = os.path.join(local_output_folder, "unknown")
+        new_root = join(local_output_folder, "unknown")
         logging.warning("File has no date info " + input_path)
-        migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime)
+        migrate_file_if_no_duplicate(input_path, new_root, new_file, file_datetime)
 
 
 def process_folder():
@@ -122,10 +127,10 @@ def process_folder():
 
 
 def prepare_logging():
-    log_folder = os.path.join(os.getcwd(), "logs/")
+    log_folder = join(os.getcwd(), "logs/")
     os.makedirs(log_folder, exist_ok=True)
     log_file_name = re.sub(r"\D", "", str(datetime.datetime.now())) + '.log'
-    log_file_path = os.path.join(log_folder, log_file_name)
+    log_file_path = join(log_folder, log_file_name)
     logging.basicConfig(filename=log_file_path,
                         level=logging.INFO,
                         format="%(asctime)s %(levelname)s %(message)s")
@@ -159,10 +164,10 @@ if __name__ == "__main__":
             remote_root = data["remote_root"]
             output_folder = data["output_folder"]
             for input_folder in data["input_folders"]:
-                local_input_folder = os.path.join(local_root, input_folder)
+                local_input_folder = join(local_root, input_folder)
                 assert remote_exists(local_input_folder), "input folder " + local_input_folder + " not exist"
-                local_output_folder = os.path.join(local_root, output_folder)
-                remote_input_folder = os.path.join(remote_root, input_folder)
-                remote_output_folder = os.path.join(remote_root, output_folder)
+                local_output_folder = join(local_root, output_folder)
+                remote_input_folder = join(remote_root, input_folder)
+                remote_output_folder = join(remote_root, output_folder)
                 os.makedirs(local_output_folder, exist_ok=True)
                 process_folder()

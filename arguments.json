@@ -2,7 +2,7 @@
   "local_root": "/Volumes/",
   "remote_root": "/volume1/",
   "input_folders": [
-    "for-import-on-nas/little-family/"
+    "for-import-on-nas/little-family-x/"
   ],
   "output_folder": "for-import-on-nas/little-family-ordered/",
   "/output_folder": "photo/byYears"

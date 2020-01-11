@@ -2,13 +2,14 @@ import datetime
 import filecmp
 import hashlib
 import logging
-import os
 import re
 import time
 
 import PIL.ExifTags
 import PIL.Image
-
+from os.path import (getmtime, exists, join,
+                     dirname, basename, getsize, splitext)
+import glob
 
 def get_md5(file):
     file = str(file)
@@ -25,7 +26,7 @@ def are_files_equal_by_content(filename1, filename2):
 
 
 def get_file_modification_date(file_path):
-    mtime = os.path.getmtime(file_path)
+    mtime = getmtime(file_path)
     out = datetime.datetime.fromtimestamp(mtime)
     period = out - datetime.datetime.now()
     if abs(period.days) > 365:
@@ -72,7 +73,9 @@ def get_date_from_folder_path(file_path):
 
 def get_exif_date(file_path):
     file_path = str(file_path)
-    if not file_path.endswith(".MOV") and not file_path.endswith(".PNG"):
+    if (not file_path.endswith(".MOV")
+            and not file_path.endswith(".PNG")
+            and not file_path.endswith(".CR2")):
         try:
             img = PIL.Image.open(file_path)
             if hasattr(img, "_getexif"):
