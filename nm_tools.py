@@ -11,6 +11,9 @@ from os.path import (getmtime, exists, join,
                      dirname, basename, getsize, splitext)
 import glob
 
+count_of_days_to_use_for_native_file_modification_date = 5
+
+
 def get_md5(file):
     file = str(file)
     hash_md5 = hashlib.md5()
@@ -29,7 +32,7 @@ def get_file_modification_date(file_path):
     mtime = getmtime(file_path)
     out = datetime.datetime.fromtimestamp(mtime)
     period = out - datetime.datetime.now()
-    if abs(period.days) > 365:
+    if abs(period.days) > count_of_days_to_use_for_native_file_modification_date:
         return out
     else:
         return None

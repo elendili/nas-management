@@ -94,7 +94,7 @@
 					KyxDRF8QE05TS2V5UGF0aEV4cHJlc3Npb26k
 					Q0UvMF8QFE5TRnVuY3Rpb25FeHByZXNzaW9u
 					00cfC0hJSl8QD05TQ29uc3RhbnRWYWx1ZYAP
-					EACAEFNjcjLSKyxNTl8QGU5TQ29uc3RhbnRW
+					EACAEFN0aWbSKyxNTl8QGU5TQ29uc3RhbnRW
 					YWx1ZUV4cHJlc3Npb26jTS8w1QtQUVJTVElV
 					I1ZaTlNNb2RpZmllclhOU05lZ2F0ZVlOU09w
 					dGlvbnNeTlNPcGVyYXRvclR5cGWAEggQBNIr
@@ -116,7 +116,7 @@
 					AAAAAAOE
 					</data>
 					<key>searchPath</key>
-					<string>/Volumes/for-import-on-nas/little-family-ordered</string>
+					<string>/Volumes/for-import-on-nas/mama-olga</string>
 				</dict>
 				<key>ActionRuntimeParameters</key>
 				<dict>
@@ -147,7 +147,7 @@
 					KyxDRF8QE05TS2V5UGF0aEV4cHJlc3Npb26k
 					Q0UvMF8QFE5TRnVuY3Rpb25FeHByZXNzaW9u
 					00cfC0hJSl8QD05TQ29uc3RhbnRWYWx1ZYAP
-					EACAEFNjcjLSKyxNTl8QGU5TQ29uc3RhbnRW
+					EACAEFN0aWbSKyxNTl8QGU5TQ29uc3RhbnRW
 					YWx1ZUV4cHJlc3Npb26jTS8w1QtQUVJTVElV
 					I1ZaTlNNb2RpZmllclhOU05lZ2F0ZVlOU09w
 					dGlvbnNeTlNPcGVyYXRvclR5cGWAEggQBNIr
@@ -169,7 +169,7 @@
 					AAAAAAOE
 					</data>
 					<key>searchPath</key>
-					<string>/Volumes/for-import-on-nas/little-family-ordered</string>
+					<string>/Volumes/for-import-on-nas/mama-olga</string>
 					<key>temporary items path</key>
 					<string>/var/folders/j2/kf4ww26s2wv7hkz2m1zknf380000gn/T/C2B7B749-63B8-427E-966F-73E50EAC99F8/1/com.apple.Automator.FindFinderItems2</string>
 				</dict>
@@ -245,7 +245,7 @@
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>449.000000:164.000000</string>
+				<string>309.000000:344.000000</string>
 				<key>nibPath</key>
 				<string>/System/Library/Automator/Find Finder Items 2.action/Contents/Resources/Base.lproj/main.nib</string>
 			</dict>
@@ -298,6 +298,13 @@
 					<key>prompt</key>
 					<string>Please make your selection:</string>
 				</dict>
+				<key>ActionRuntimeParameters</key>
+				<dict>
+					<key>prompt</key>
+					<string>Please make your selection:</string>
+					<key>temporary items path</key>
+					<string>/var/folders/j2/kf4ww26s2wv7hkz2m1zknf380000gn/T/C2B7B749-63B8-427E-966F-73E50EAC99F8/1/com.apple.Automator.ChooseFromList</string>
+				</dict>
 				<key>BundleIdentifier</key>
 				<string>com.apple.Automator.ChooseFromList</string>
 				<key>CFBundleVersion</key>
@@ -343,14 +350,14 @@
 				<key>conversionLabel</key>
 				<integer>0</integer>
 				<key>isViewVisible</key>
-				<true/>
+				<false/>
 				<key>location</key>
-				<string>449.000000:269.000000</string>
+				<string>309.000000:386.000000</string>
 				<key>nibPath</key>
 				<string>/System/Library/Automator/Choose from List.action/Contents/Resources/Base.lproj/main.nib</string>
 			</dict>
 			<key>isViewVisible</key>
-			<true/>
+			<false/>
 		</dict>
 		<dict>
 			<key>action</key>
@@ -395,12 +402,19 @@
 					<key>imageType</key>
 					<string>JPEG</string>
 				</dict>
+				<key>ActionRuntimeParameters</key>
+				<dict>
+					<key>imageType</key>
+					<string>JPEG</string>
+					<key>temporary items path</key>
+					<string>/var/folders/j2/kf4ww26s2wv7hkz2m1zknf380000gn/T/C2B7B749-63B8-427E-966F-73E50EAC99F8/1/com.apple.Automator.ChangeImageType</string>
+				</dict>
 				<key>BundleIdentifier</key>
 				<string>com.apple.Automator.ChangeImageType</string>
 				<key>CFBundleVersion</key>
 				<string>1.1.1</string>
 				<key>CanShowSelectedItemsWhenRun</key>
-				<true/>
+				<false/>
 				<key>CanShowWhenRun</key>
 				<true/>
 				<key>Category</key>
@@ -446,7 +460,7 @@
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>449.000000:553.000000</string>
+				<string>309.000000:796.000000</string>
 				<key>nibPath</key>
 				<string>/System/Library/Automator/Change Type of Images.action/Contents/Resources/Base.lproj/main.nib</string>
 			</dict>
