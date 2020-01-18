@@ -118,16 +118,27 @@ def process_file(root, file, local_input_folder, local_output_folder):
                                      new_file, file_datetime)
 
 
-def process_folder(local_input_folder, local_output_folder):
+def process_folder(local_input_folder,
+                   local_output_folder,
+                   filter_by_filename_regex):
     os.makedirs(local_output_folder, exist_ok=True)
     for root, dirs, files in os.walk(local_input_folder, onerror=on_error):
         if '@eaDir' not in root:
             for file in files:
+                file_path = join(root, file)
                 if not file.startswith("."):
-                    process_file(root, file,
-                                 local_input_folder, local_output_folder)
+                    if re.fullmatch(filter_by_filename_regex, file):
+                        process_file(root, file,
+                                     local_input_folder,
+                                     local_output_folder)
+                    else:
+                        print("File '%s' was ignored, "
+                              "because doesn't match pattern %s."
+                              % (file_path, filter_by_filename_regex))
                 else:
-                    print("File %s in %s was ignored" % (file, root))
+                    print("File '%s' was ignored, "
+                          "because starts with ."
+                          % file_path)
 
 
 def prepare_logging():
@@ -166,6 +177,7 @@ if __name__ == "__main__":
         local_root = data["local_root"]
         remote_root = data["remote_root"]
         output_folder = data["output_folder"]
+        filter_by_filename_regex = data["filter_by_filename_regex"]
 
     with spur.SshShell(**connection_data) as shell:
         for input_folder in data["input_folders"]:
@@ -173,4 +185,6 @@ if __name__ == "__main__":
             assert remote_exists(_local_input_folder), \
                 "input folder " + _local_input_folder + " not exist"
             _local_output_folder = join(local_root, output_folder)
-            process_folder(_local_input_folder, _local_output_folder)
+            process_folder(_local_input_folder,
+                           _local_output_folder,
+                           filter_by_filename_regex)

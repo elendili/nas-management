@@ -13,9 +13,14 @@ def process_name(name):
     n_name = re.sub(r"\s+", "_", name)
     n_n_name = unidecode(n_name)
     n_n_n_name = re.sub(r"(\W)\1+", r"\1", n_n_name)
-    n_n_n_n_name = re.sub("_-_", "_", n_n_n_name)
-    n_n_n_n_n_name = re.sub(r"_g\.$", "", n_n_n_n_name)
-    return n_n_n_n_n_name
+    n_n_n_n_name = re.sub("_-_", "_",      n_n_n_name)
+    n_n_n_n_n_name = re.sub(r"_g\.$", "",  n_n_n_n_name)
+    n_n_n_n_n_n_name = n_n_n_n_n_name\
+        .replace("'", "").replace('"', "")\
+        .replace("(", "").replace(")", "")
+
+    out = n_n_n_n_n_n_name
+    return out
 
 
 def rename_loop(l):

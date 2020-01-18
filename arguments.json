@@ -2,8 +2,9 @@
   "local_root": "/Volumes/",
   "remote_root": "/volume1/",
   "input_folders": [
-    "for-import-on-nas/toNAS-ordered/"
+    "for-import-on-nas/yandex.disk.to.NAS.ordered/"
   ],
-  "//output_folder": "for-import-on-nas/toNAS-ordered",
+  "filter_by_filename_regex": ".*",
+  "//output_folder": "for-import-on-nas/yandex.disk.to.NAS.ordered",
   "output_folder": "photo/byYears"
 }
