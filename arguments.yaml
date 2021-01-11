@@ -1,0 +1,14 @@
+local_root: /Volumes/
+remote_root: /volume1/
+input_folders: [
+  for-import-on-nas/from-cloud
+]
+filter_by_filename_regex: .*
+output_folder: for-import-on-nas/out.2021.01.11
+#output_folder: photo/byYears
+
+ssh-connection-data:
+  hostname: 192.168.1.36
+  username: elendili
+  private_key_file: /Users/elendili/.ssh/id_rsa
+  port: 29

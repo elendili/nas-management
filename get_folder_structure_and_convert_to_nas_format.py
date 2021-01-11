@@ -8,20 +8,16 @@ and name started from original file name.
 Script updates file access/modification date from
 """
 import atexit
-import json
 import os
 import sys
 from pathlib import Path
 
 import spur
+import yaml
 
 from nm_tools import *
 
-connection_data = {"hostname": "192.168.1.36", "username": "elendili",
-                   "private_key_file": "/Users/elendili/.ssh/id_rsa"}
-
 timings = []
-
 
 def migrate_file_if_no_duplicate(local_input_folder,
                                  input_path, new_root, file, file_datetime):
@@ -173,11 +169,12 @@ if __name__ == "__main__":
     arg_file = sys.argv[1]
     logging.info("Arg file: " + arg_file)
     with open(arg_file) as json_file:
-        data = json.load(json_file)
+        data = yaml.safe_load(json_file)
         local_root = data["local_root"]
         remote_root = data["remote_root"]
         output_folder = data["output_folder"]
         filter_by_filename_regex = data["filter_by_filename_regex"]
+        connection_data = data["ssh-connection-data"]
 
     with spur.SshShell(**connection_data) as shell:
         for input_folder in data["input_folders"]:

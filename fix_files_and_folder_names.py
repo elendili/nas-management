@@ -17,7 +17,8 @@ def process_name(name):
     n_n_n_n_n_name = re.sub(r"_g\.$", "",  n_n_n_n_name)
     n_n_n_n_n_n_name = n_n_n_n_n_name\
         .replace("'", "").replace('"', "")\
-        .replace("(", "").replace(")", "")
+        .replace("(", "").replace(")", "")\
+        .replace("?", "")
 
     out = n_n_n_n_n_n_name
     return out
