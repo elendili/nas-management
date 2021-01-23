@@ -84,10 +84,10 @@ def get_exif_date(file_path):
             if hasattr(img, "_getexif"):
                 exif_dict = img._getexif()
             else:
-                print("no exif data on", file_path)
+                logging.error("no exif data on:", file_path)
                 return None
         except Exception as e:
-            print(file_path, e, sep="\n")
+            logging.error(file_path, exc_info=e)
             return None
         if exif_dict is not None:
             exif = {
@@ -119,10 +119,8 @@ def get_exif_date(file_path):
             else:
                 out = None
                 if "Date" in str.join(",", exif.keys()):
-                    print("===================== Error here, but Date exists")
-                    print("path:", file_path)
-                    print("exif", exif)
-                    print("=====================")
+                    logging.error("===================== Error here, but Date exists",
+                                  "path:", file_path, "exif", exif, "=====================")
 
             return out
 

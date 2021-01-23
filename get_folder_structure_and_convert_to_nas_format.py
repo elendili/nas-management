@@ -19,6 +19,7 @@ from nm_tools import *
 
 timings = []
 
+
 def migrate_file_if_no_duplicate(local_input_folder,
                                  input_path, new_root, file, file_datetime):
     output_path = join(new_root, file)
@@ -28,8 +29,8 @@ def migrate_file_if_no_duplicate(local_input_folder,
         globbed_paths = glob.glob(globbed_path)
         for gp in globbed_paths:
             if are_equal(input_path, gp):
-                logging.info("Skip %s because total duplicate exists in output"
-                             % Path(input_path).relative_to(local_input_folder))
+                logging.info("Skip '%s' because total duplicate exists in output '%s'"
+                             % (input_path, output_path))
                 break
 
         else:
@@ -55,7 +56,7 @@ def migrate_file(src_path, new_path):
 def remote_file_size(file):
     try:
         return os.stat(file).st_size
-    except:
+    except Exception as e:
         remote_file = file.replace(local_root, remote_root)
         result = shell.run(["stat", "-c", "%s", remote_file])
         out = int(result.output)
@@ -65,7 +66,7 @@ def remote_file_size(file):
 def remote_exists(file):
     try:
         out = Path(file).exists()
-    except:
+    except Exception as e:
         remote_file = file.replace(local_root, remote_root)
         result = shell.run(["test", "-e", remote_file], allow_error=True)
         out = result.return_code == 0
@@ -128,13 +129,9 @@ def process_folder(local_input_folder,
                                      local_input_folder,
                                      local_output_folder)
                     else:
-                        print("File '%s' was ignored, "
-                              "because doesn't match pattern %s."
-                              % (file_path, filter_by_filename_regex))
+                        logging.info("File '%s' was ignored,because doesn't match pattern %s." % (file_path, filter_by_filename_regex))
                 else:
-                    print("File '%s' was ignored, "
-                          "because starts with ."
-                          % file_path)
+                    logging.info("File '%s' was ignored, because starts with ." % file_path)
 
 
 def prepare_logging():
@@ -155,9 +152,9 @@ def on_error(error):
 
 def exit_f():
     if timings:
-        print("Timings sum:", sum(timings))
-        print("Average time:", sum(timings) / len(timings))
-    print("Total time:", current_milli_time() - start_execution_time)
+        logging.info("Timings sum: %s" % sum(timings))
+        logging.info("Average time: %s" % sum(timings) / len(timings))
+    logging.info("Total time: %s" % str(current_milli_time() - start_execution_time))
 
 
 start_execution_time = current_milli_time()
@@ -167,7 +164,7 @@ if __name__ == "__main__":
     atexit.register(exit_f)
     assert len(sys.argv) > 1, "define path to arguments file"
     arg_file = sys.argv[1]
-    logging.info("Arg file: " + arg_file)
+    logging.info("Arguments file: " + arg_file)
     with open(arg_file) as json_file:
         data = yaml.safe_load(json_file)
         local_root = data["local_root"]
