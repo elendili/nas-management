@@ -1,0 +1,4 @@
+hachoir
+pytest
+filetype
+pillow == 8.2.0

@@ -4,14 +4,17 @@ import hashlib
 import logging
 import re
 import time
+from os.path import (getmtime, exists)
 
 import PIL.ExifTags
 import PIL.Image
-from os.path import (getmtime, exists, join,
-                     dirname, basename, getsize, splitext)
-import glob
+import filetype
+import hachoir.metadata
+import hachoir.parser
+import hachoir.core
 
 count_of_days_to_use_for_native_file_modification_date = 5
+hachoir.core.config.quiet = True
 
 
 def get_md5(file):
@@ -28,7 +31,7 @@ def are_files_equal_by_content(filename1, filename2):
     return out
 
 
-def get_file_modification_date(file_path):
+def get_file_modification_date(file_path) -> datetime.datetime:
     mtime = getmtime(file_path)
     out = datetime.datetime.fromtimestamp(mtime)
     period = out - datetime.datetime.now()
@@ -38,32 +41,69 @@ def get_file_modification_date(file_path):
         return None
 
 
-def get_file_datetime(file_path):
+def get_file_datetime(file_path) -> datetime.datetime:
+    if not exists(file_path):
+        raise FileNotFoundError(file_path)
+
+    hachoir_date = get_creation_date_by_harchoir(file_path)
+    if hachoir_date:
+        return hachoir_date
+
     exif_date = get_exif_date(file_path)
-    file_modification_date = get_file_modification_date(file_path)
-    folder_date = get_date_from_folder_path(file_path)
     if exif_date:
         return exif_date
+
+    file_modification_date = get_file_modification_date(file_path)
     if file_modification_date:
         return file_modification_date
-    elif folder_date:
+
+    folder_date = get_date_from_numbered_folder_path(file_path)
+    if folder_date:
         return folder_date
-    else:
-        logging.error("No exif or folder date to extract for " + file_path)
+
+    logging.error("No exif or folder date to extract for " + file_path)
 
 
-def get_date_from_folder_path(file_path):
+def get_file_extension(file_path) -> str:
+    guessed = filetype.guess(file_path)
+    return guessed.extension
+
+
+def get_date_from_string(pattern, string):
+    try:
+        f = re.search(pattern, string)
+        if f:
+            m = f.group("month")
+            if m.isnumeric():
+                month = int(m)
+            else:
+                month = datetime.datetime.strptime(m, "%B").month
+
+            d = f.group("day")
+            day = datetime.datetime.strptime(d, "%d").day
+
+            return int(f.group("year")), month, day
+    except:
+        return None
+
+
+def get_date_from_numbered_folder_path(file_path):
     file_path = str(file_path)
-    found1 = re.search(r"\D\d{2}(\D)\d{2}\1{1}20\d{2}\1", file_path)
-    found2 = re.search(r"\D20\d{2}\D\d{2}\D\d{2}\D", file_path)
+    pat1 = r"(\D)(?P<day>\d{2})(\1)(?P<month>\d{2})(\1)(?P<year>20\d{2})(\1)"
+    pat2 = r"(\D)(?P<year>20\d{2})(\1)(?P<month>\d{2})(\1)(?P<day>\d{2})(\1)"
+    pat3 = r"(\W)(?P<day>\d{1,2})(\W)(?P<month>\w+)(\W)(?P<year>20\d{2})(\W)"
+    found1 = get_date_from_string(pat1, file_path)
+    found2 = get_date_from_string(pat2, file_path)
+    found3 = get_date_from_string(pat3, file_path)
     if found1:
-        s = filter(None, re.split(r"\D+", found1.group(0)))
-        f_day, f_month, f_year = map(int, s)
+        f_year, f_month, f_day = found1
     elif found2:
-        s = filter(None, re.split(r"\D+", found2.group(0)))
-        f_year, f_month, f_day = map(int, s)
+        f_year, f_month, f_day = found2
+    elif found3:
+        f_year, f_month, f_day = found3
     else:
         return None
+
     if f_month > 12:
         f_month, f_day = f_day, f_month
     try:
@@ -76,9 +116,9 @@ def get_date_from_folder_path(file_path):
 
 def get_exif_date(file_path):
     file_path = str(file_path)
-    if (not file_path.endswith(".MOV")
-            and not file_path.endswith(".PNG")
-            and not file_path.endswith(".CR2")):
+    if (not file_path.capitalize().endswith(".MOV")
+            and not file_path.capitalize().endswith(".PNG")
+            and not file_path.capitalize().endswith(".CR2")):
         try:
             img = PIL.Image.open(file_path)
             if hasattr(img, "_getexif"):
@@ -137,3 +177,21 @@ def add_suffix_to_file(file, exif_date):
 
 def current_milli_time():
     return int(round(time.time() * 1000))
+
+
+def get_creation_date_by_harchoir(filename):
+    meta = get_metadata_by_harchoir(filename)
+    if meta.has('creation_date'):
+        return meta.get('creation_date')
+    return None
+
+
+# import hachoir.metadata.metadata
+
+def get_metadata_by_harchoir(filename) -> hachoir.metadata.metadata:
+    try:
+        parser = hachoir.parser.createParser(filename)
+        return hachoir.metadata.extractMetadata(parser)
+    except Exception as e:
+        logging.error("hachoir can't extract metadata", e)
+        return None

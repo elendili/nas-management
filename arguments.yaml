@@ -1,10 +1,12 @@
 local_root: /Volumes/
 remote_root: /volume1/
 input_folders: [
-  for-import-on-nas/fromFujiByTask/USB-Copy_2021-01-23_173012
+#    photo/unknown
+#    photo/from-phone
+  for-import-on-nas/exportOnJune2021
 ]
 filter_by_filename_regex: .*
-output_folder: for-import-on-nas/out.2021.01.23
+output_folder: for-import-on-nas/outJune2021
 #output_folder: photo/byYears
 
 ssh-connection-data:

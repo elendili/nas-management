@@ -8,8 +8,11 @@ and name started from original file name.
 Script updates file access/modification date from
 """
 import atexit
+import glob
 import os
 import sys
+from os.path import (join,
+                     dirname)
 from pathlib import Path
 
 import spur
@@ -85,11 +88,30 @@ def are_equal(f1, f2):
 
 
 def process_file(root, file, local_input_folder, local_output_folder):
-    input_path = join(root, file)
+    def update_original_file_name():
+        original_path = join(root, file)
+        new_file = re.sub(r"[()]+", "", file)  # no parentheses
+        new_file = re.sub(r"\s+", "_", new_file)  # no spaces
+
+        def update_file_extension(file_name):
+            ce = "".join(Path(file_name).suffixes)
+            guessed_file_extension = "." + get_file_extension(original_path)
+            out = file_name.replace(ce, guessed_file_extension)
+            if out != file_name:
+                print("extension of %s was changed from %s to %s" %
+                      (file, ce, guessed_file_extension))
+            return out
+
+        dest_file = update_file_extension(new_file)
+        new_path = join(root, dest_file)
+        if file != dest_file:
+            print("renamed %s to %s" % (file, dest_file))
+            os.rename(original_path, new_path)
+        return new_path, dest_file
+
+    input_path, new_file = update_original_file_name()
+
     file_datetime = get_file_datetime(input_path)
-    # rename out file
-    new_file = re.sub(r"[()]+", "", file)
-    new_file = re.sub(r"\s+", "_", new_file)
     if file_datetime:
         epoch_time = file_datetime.timestamp()
         logging.info("update time of %s to %s " %
@@ -129,7 +151,8 @@ def process_folder(local_input_folder,
                                      local_input_folder,
                                      local_output_folder)
                     else:
-                        logging.info("File '%s' was ignored,because doesn't match pattern %s." % (file_path, filter_by_filename_regex))
+                        logging.info("File '%s' was ignored,because doesn't match pattern %s." % (
+                            file_path, filter_by_filename_regex))
                 else:
                     logging.info("File '%s' was ignored, because starts with ." % file_path)
 
