@@ -97,7 +97,8 @@ def process_file(root, file, local_input_folder, local_output_folder):
             ce = "".join(Path(file_name).suffixes)
             guessed_e = get_file_extension(original_path)
             out = file_name.replace(ce, guessed_e)
-            if guessed_e == ".jpg" and ce == ".jpeg":  # avoid useless rename
+            if guessed_e.lower() in [".jpg", ".jpeg"] \
+                    and ce.lower() in [".jpg", ".jpeg"]:  # avoid useless rename
                 return file_name
             if out != file_name:
                 print("extension of %s was changed from %s to %s" %
@@ -152,6 +153,7 @@ def process_folder(local_input_folder,
                         process_file(root, file,
                                      local_input_folder,
                                      local_output_folder)
+                        logging.info("file", file_path, "processed")
                     else:
                         logging.info("File '%s' was ignored,because doesn't match pattern %s." % (
                             file_path, filter_by_filename_regex))

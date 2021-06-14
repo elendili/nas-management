@@ -6,8 +6,8 @@ input_folders: [
   for-import-on-nas/exportOnJune2021
 ]
 filter_by_filename_regex: .*
-output_folder: for-import-on-nas/outJune2021
-#output_folder: photo/byYears
+#output_folder: for-import-on-nas/outJune2021
+output_folder: photo/byYears
 
 ssh-connection-data:
   hostname: 192.168.1.36

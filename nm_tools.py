@@ -9,9 +9,9 @@ from os.path import (getmtime, exists, splitext)
 import PIL.ExifTags
 import PIL.Image
 import filetype
+import hachoir.core
 import hachoir.metadata
 import hachoir.parser
-import hachoir.core
 
 count_of_days_to_use_for_native_file_modification_date = 5
 hachoir.core.config.quiet = True
@@ -67,7 +67,7 @@ def get_file_datetime(file_path) -> datetime.datetime:
 def get_file_extension(file_path) -> str:
     guessed = filetype.guess(file_path)
     if guessed:
-        return "."+guessed.extension
+        return "." + guessed.extension
     else:
         return splitext(file_path)[-1]
 
@@ -147,6 +147,8 @@ def get_exif_date(file_path):
             def get_date_for_exif_key(exif_key):
                 if exif_key in exif:
                     exif_v = exif[exif_key]
+                    exif_v = re.sub(r"\D+$", "", exif_v)  # remove tail garbage
+                    exif_v = re.sub(r"^\D+", "", exif_v)  # remove head garbage
                     if '0000:00:00 00:00:00' != exif_v:
                         try:
                             return datetime.datetime.strptime(exif_v,
@@ -164,12 +166,11 @@ def get_exif_date(file_path):
             if date_key_values:
                 return date_key_values[0]
             else:
-                out = None
                 if "Date" in str.join(",", exif.keys()):
                     logging.error("===================== Error here, but Date exists",
                                   "path:", file_path, "exif", exif, "=====================")
 
-            return out
+            return None
 
 
 def add_suffix_to_file(file, exif_date):

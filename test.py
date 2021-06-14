@@ -32,3 +32,7 @@ def test_get_date_from_numbered_folder_path():
            == datetime.datetime(2021, 3, 4)
     assert nm_tools.get_date_from_numbered_folder_path("/23 April 2019/")\
            == datetime.datetime(2019, 4, 23)
+    assert nm_tools.get_date_from_numbered_folder_path("/21 January 2017/2017-01-21_14.jpg")\
+           == datetime.datetime(2017, 1, 21)
+
+
