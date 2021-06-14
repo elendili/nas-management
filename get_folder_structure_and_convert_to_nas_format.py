@@ -153,7 +153,7 @@ def process_folder(local_input_folder,
                         process_file(root, file,
                                      local_input_folder,
                                      local_output_folder)
-                        logging.info("file", file_path, "processed")
+                        logging.info("File %s processed", file_path)
                     else:
                         logging.info("File '%s' was ignored,because doesn't match pattern %s." % (
                             file_path, filter_by_filename_regex))
