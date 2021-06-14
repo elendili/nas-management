@@ -4,7 +4,7 @@ import hashlib
 import logging
 import re
 import time
-from os.path import (getmtime, exists)
+from os.path import (getmtime, exists, splitext)
 
 import PIL.ExifTags
 import PIL.Image
@@ -66,7 +66,10 @@ def get_file_datetime(file_path) -> datetime.datetime:
 
 def get_file_extension(file_path) -> str:
     guessed = filetype.guess(file_path)
-    return guessed.extension
+    if guessed:
+        return "."+guessed.extension
+    else:
+        return splitext(file_path)[-1]
 
 
 def get_date_from_string(pattern, string):
@@ -116,9 +119,13 @@ def get_date_from_numbered_folder_path(file_path):
 
 def get_exif_date(file_path):
     file_path = str(file_path)
-    if (not file_path.capitalize().endswith(".MOV")
-            and not file_path.capitalize().endswith(".PNG")
-            and not file_path.capitalize().endswith(".CR2")):
+    upper_path = file_path.upper()
+    if (not upper_path.endswith(".MOV")
+            and not upper_path.endswith(".PNG")
+            and not upper_path.endswith(".CR2")
+            and not upper_path.endswith(".HEIC")
+            and not upper_path.endswith(".AAE")
+    ):
         try:
             img = PIL.Image.open(file_path)
             if hasattr(img, "_getexif"):
@@ -181,7 +188,7 @@ def current_milli_time():
 
 def get_creation_date_by_harchoir(filename):
     meta = get_metadata_by_harchoir(filename)
-    if meta.has('creation_date'):
+    if meta and meta.has('creation_date'):
         return meta.get('creation_date')
     return None
 

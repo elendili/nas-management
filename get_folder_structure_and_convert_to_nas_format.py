@@ -95,11 +95,13 @@ def process_file(root, file, local_input_folder, local_output_folder):
 
         def update_file_extension(file_name):
             ce = "".join(Path(file_name).suffixes)
-            guessed_file_extension = "." + get_file_extension(original_path)
-            out = file_name.replace(ce, guessed_file_extension)
+            guessed_e = get_file_extension(original_path)
+            out = file_name.replace(ce, guessed_e)
+            if guessed_e == ".jpg" and ce == ".jpeg":  # avoid useless rename
+                return file_name
             if out != file_name:
                 print("extension of %s was changed from %s to %s" %
-                      (file, ce, guessed_file_extension))
+                      (file, ce, guessed_e))
             return out
 
         dest_file = update_file_extension(new_file)
