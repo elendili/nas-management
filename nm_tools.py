@@ -63,13 +63,13 @@ def get_file_datetime(file_path) -> datetime.datetime:
     if check_date(exif_date):
         return exif_date
 
-    file_modification_date = get_file_modification_date(file_path)
-    if check_date(file_modification_date):
-        return file_modification_date
-
     folder_date = get_date_from_path(file_path)
     if check_date(folder_date):
         return folder_date
+
+    file_modification_date = get_file_modification_date(file_path)
+    if check_date(file_modification_date):
+        return file_modification_date
 
     logging.error("No exif or folder date to extract for " + file_path)
 

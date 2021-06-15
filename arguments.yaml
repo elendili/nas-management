@@ -5,6 +5,7 @@ input_folders: [
     photo/unknown2/
 ]
 filter_by_filename_regex: .*
+#skip_till_match: .*_5129\..*
 #output_folder: for-import-on-nas/outJune2021
 output_folder: photo/byYears
 

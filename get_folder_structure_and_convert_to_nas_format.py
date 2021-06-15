@@ -8,13 +8,12 @@ and name started from original file name.
 Script updates file access/modification date from
 """
 import atexit
-import glob
 import os
 import sys
-from os.path import (join,
-                     dirname)
+from os.path import (join)
 from pathlib import Path
 
+import glob
 import spur
 import yaml
 
@@ -23,8 +22,7 @@ from nm_tools import *
 timings = []
 
 
-def migrate_file_if_no_duplicate(local_input_folder,
-                                 input_path, new_root, file, file_datetime):
+def migrate_file_if_no_duplicate(input_path, new_root, file, file_datetime):
     output_path = join(new_root, file)
     if remote_exists(output_path):
         globbed_file = re.sub(r"(\.\w+$)", r"*\1", file)
@@ -96,18 +94,22 @@ def process_file(root, file, local_input_folder, local_output_folder):
         def update_file_extension(file_name):
             ce = "".join(Path(file_name).suffixes)
             guessed_e = get_file_extension(original_path)
-            out = file_name.replace(ce, guessed_e)
+
             if guessed_e.lower() in [".jpg", ".jpeg"] \
                     and ce.lower() in [".jpg", ".jpeg"]:  # avoid useless rename
                 return file_name
-            if out != file_name:
+
+            out = file_name.replace(ce, guessed_e)
+            if out.lower() != file_name.lower():
                 print("extension of %s was changed from %s to %s" %
                       (file, ce, guessed_e))
-            return out
+                return out
+            else:
+                return file_name
 
         dest_file = update_file_extension(new_file)
         new_path = join(root, dest_file)
-        if file != dest_file:
+        if file.lower() != dest_file.lower():
             print("renamed %s to %s" % (file, dest_file))
             os.rename(original_path, new_path)
         return new_path, dest_file
@@ -129,34 +131,43 @@ def process_file(root, file, local_input_folder, local_output_folder):
                         "%02d" % file_datetime.month,
                         "%02d" % file_datetime.day)
         os.makedirs(new_root, exist_ok=True)
-        migrate_file_if_no_duplicate(local_input_folder,
-                                     input_path, new_root,
+        migrate_file_if_no_duplicate(input_path, new_root,
                                      new_file, file_datetime)
     else:
         new_root = join(local_output_folder, "unknown")
         logging.warning("File has no date info " + input_path)
-        migrate_file_if_no_duplicate(local_input_folder,
-                                     input_path, new_root,
+        migrate_file_if_no_duplicate(input_path, new_root,
                                      new_file, file_datetime)
 
 
 def process_folder(local_input_folder,
                    local_output_folder,
-                   filter_by_filename_regex):
+                   filter_by_filename_regex,
+                   skip_till_match
+                   ):
     os.makedirs(local_output_folder, exist_ok=True)
+    process_flag = False
     for root, dirs, files in os.walk(local_input_folder, onerror=on_error):
         if '@eaDir' not in root:
-            for file in files:
+            for file in sorted(files):
+
                 file_path = join(root, file)
+                if not process_flag:
+                    process_flag = bool(re.match(skip_till_match, file_path))
+                    if not process_flag:
+                        continue
+
                 if not file.startswith("."):
                     if re.fullmatch(filter_by_filename_regex, file):
+                        logging.info("File %s to be processed", file_path)
                         process_file(root, file,
                                      local_input_folder,
                                      local_output_folder)
-                        logging.info("File %s processed", file_path)
+                        logging.info("File %s is processed", file_path)
                     else:
-                        logging.info("File '%s' was ignored,because doesn't match pattern %s." % (
-                            file_path, filter_by_filename_regex))
+                        logging.info(
+                            "File '%s' was ignored,because doesn't match pattern %s." % (
+                                file_path, filter_by_filename_regex))
                 else:
                     logging.info("File '%s' was ignored, because starts with ." % file_path)
 
@@ -198,6 +209,7 @@ if __name__ == "__main__":
         remote_root = data["remote_root"]
         output_folder = data["output_folder"]
         filter_by_filename_regex = data["filter_by_filename_regex"]
+        skip_till_match = data.get("skip_till_match", r".*")
         connection_data = data["ssh-connection-data"]
 
     with spur.SshShell(**connection_data) as shell:
@@ -208,4 +220,6 @@ if __name__ == "__main__":
             _local_output_folder = join(local_root, output_folder)
             process_folder(_local_input_folder,
                            _local_output_folder,
-                           filter_by_filename_regex)
+                           filter_by_filename_regex,
+                           skip_till_match
+                           )
