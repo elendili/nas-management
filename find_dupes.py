@@ -9,7 +9,7 @@ from collections import defaultdict
 from datetime import timedelta
 from timeit import default_timer as timer
 
-from nm_tools import (get_exif_date, get_date_from_numbered_folder_path,
+from nm_tools import (get_exif_date, get_date_from_path,
                       exists, join, dirname, basename, getsize)
 
 duplicates_file_name = 'tmp/duplicates-by-size.json'
@@ -99,7 +99,7 @@ def clean_by_path_pattern(files, pos_pattern):
 def exif_date_equals_to_folder_date(f):
     exif = get_exif_date(f)
     if exif:
-        from_folder = get_date_from_numbered_folder_path(f)
+        from_folder = get_date_from_path(f)
         if from_folder:
             from_folder_to_compare = from_folder\
                 .replace(hour=0, minute=0,second=0)

@@ -21,18 +21,22 @@ def test_get_date_from_string():
 
 
 def test_get_date_from_numbered_folder_path():
-    assert nm_tools.get_date_from_numbered_folder_path("/1/2021/02/10/") \
+    assert nm_tools.get_date_from_path("/1/2021/02/10/") \
            == datetime.datetime(2021, 2, 10)
-    assert nm_tools.get_date_from_numbered_folder_path("/10/02/2021/") \
+    assert nm_tools.get_date_from_path("/10/02/2021/") \
            == datetime.datetime(2021, 2, 10)
     # with month as a word
-    assert nm_tools.get_date_from_numbered_folder_path("/Home, 14 December 2020/") \
+    assert nm_tools.get_date_from_path("/Home, 14 December 2020/") \
            == datetime.datetime(2020, 12, 14)
-    assert nm_tools.get_date_from_numbered_folder_path("/4 March 2021 ")\
+    assert nm_tools.get_date_from_path("/4 March 2021 ")\
            == datetime.datetime(2021, 3, 4)
-    assert nm_tools.get_date_from_numbered_folder_path("/23 April 2019/")\
+    assert nm_tools.get_date_from_path("/23 April 2019/")\
            == datetime.datetime(2019, 4, 23)
-    assert nm_tools.get_date_from_numbered_folder_path("/21 January 2017/2017-01-21_14.jpg")\
+    assert nm_tools.get_date_from_path("/21 January 2017/2017-01-21_14.jpg")\
            == datetime.datetime(2017, 1, 21)
+    assert nm_tools.get_date_from_path("/21 January 2017/2018-01-21_14.jpg") \
+           == datetime.datetime(2018, 1, 21)
+    assert nm_tools.get_date_from_path("/Volumes/photo/byYears/1904/01/01/2020-11-20_0.mp4") \
+           == datetime.datetime(2020, 11, 20)
 
 

@@ -1,9 +1,8 @@
 local_root: /Volumes/
 remote_root: /volume1/
 input_folders: [
-#    photo/unknown
-#    photo/from-phone
-  for-import-on-nas/exportOnJune2021
+#    photo/byYears/1904/01
+    photo/unknown2/
 ]
 filter_by_filename_regex: .*
 #output_folder: for-import-on-nas/outJune2021

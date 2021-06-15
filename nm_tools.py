@@ -4,7 +4,7 @@ import hashlib
 import logging
 import re
 import time
-from os.path import (getmtime, exists, splitext)
+from os.path import (getmtime, exists, splitext, basename, dirname)
 
 import PIL.ExifTags
 import PIL.Image
@@ -13,8 +13,18 @@ import hachoir.core
 import hachoir.metadata
 import hachoir.parser
 
-count_of_days_to_use_for_native_file_modification_date = 5
+count_of_days_to_use_for_native_file_modification_date = 20
+years_span = 50
 hachoir.core.config.quiet = True
+
+
+def check_date(dt: datetime):
+    if dt:
+        now = datetime.datetime.now()
+        long_ago = now.replace(year=now.year - years_span)
+        # not before years_span ago
+        if dt > long_ago:
+            return dt
 
 
 def get_md5(file):
@@ -46,19 +56,19 @@ def get_file_datetime(file_path) -> datetime.datetime:
         raise FileNotFoundError(file_path)
 
     hachoir_date = get_creation_date_by_harchoir(file_path)
-    if hachoir_date:
+    if check_date(hachoir_date):
         return hachoir_date
 
     exif_date = get_exif_date(file_path)
-    if exif_date:
+    if check_date(exif_date):
         return exif_date
 
     file_modification_date = get_file_modification_date(file_path)
-    if file_modification_date:
+    if check_date(file_modification_date):
         return file_modification_date
 
-    folder_date = get_date_from_numbered_folder_path(file_path)
-    if folder_date:
+    folder_date = get_date_from_path(file_path)
+    if check_date(folder_date):
         return folder_date
 
     logging.error("No exif or folder date to extract for " + file_path)
@@ -90,20 +100,22 @@ def get_date_from_string(pattern, string):
         return None
 
 
-def get_date_from_numbered_folder_path(file_path):
+def get_date_from_path(file_path):
+    params = [basename(file_path), dirname(file_path)]
+    results = [x for x in map(get_date_from_path_string, params) if x]
+    if results:
+        return results[0]
+    return None
+
+
+def get_date_from_path_string(file_path):
     file_path = str(file_path)
-    pat1 = r"(\D)(?P<day>\d{2})(\1)(?P<month>\d{2})(\1)(?P<year>20\d{2})(\1)"
-    pat2 = r"(\D)(?P<year>20\d{2})(\1)(?P<month>\d{2})(\1)(?P<day>\d{2})(\1)"
-    pat3 = r"(\W)(?P<day>\d{1,2})(\W)(?P<month>\w+)(\W)(?P<year>20\d{2})(\W)"
-    found1 = get_date_from_string(pat1, file_path)
-    found2 = get_date_from_string(pat2, file_path)
-    found3 = get_date_from_string(pat3, file_path)
-    if found1:
-        f_year, f_month, f_day = found1
-    elif found2:
-        f_year, f_month, f_day = found2
-    elif found3:
-        f_year, f_month, f_day = found3
+    patterns = [r"(^|\D)(?P<day>\d{2})(\D)(?P<month>\d{2})(\D)(?P<year>20\d{2})(\D|$)",
+                r"(^|\D)(?P<year>20\d{2})(\D)(?P<month>\d{2})(\D)(?P<day>\d{2})(\D|$)",
+                r"(^|\D)(?P<day>\d{1,2})(\D)(?P<month>\w+)(\D)(?P<year>20\d{2})(\D|$)"]
+    res = list(filter(None, map(lambda p: get_date_from_string(p, file_path), patterns)))
+    if res:
+        f_year, f_month, f_day = res[0]
     else:
         return None
 
@@ -134,7 +146,7 @@ def get_exif_date(file_path):
                 logging.error("no exif data on:", file_path)
                 return None
         except Exception as e:
-            logging.error(file_path, exc_info=e)
+            logging.warn("exif not found in %s", file_path)
             return None
         if exif_dict is not None:
             exif = {
