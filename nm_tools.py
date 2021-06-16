@@ -3,7 +3,6 @@ import filecmp
 import hashlib
 import logging
 import re
-import time
 from os.path import (getmtime, exists, splitext, basename, dirname)
 
 import PIL.ExifTags
@@ -47,8 +46,6 @@ def get_file_modification_date(file_path) -> datetime.datetime:
     period = out - datetime.datetime.now()
     if abs(period.days) > count_of_days_to_use_for_native_file_modification_date:
         return out
-    else:
-        return None
 
 
 def get_file_datetime(file_path) -> datetime.datetime:
@@ -146,7 +143,7 @@ def get_exif_date(file_path):
                 logging.error("no exif data on:", file_path)
                 return None
         except Exception as e:
-            logging.warn("exif not found in %s", file_path)
+            logging.warning("exif not found in %s", file_path)
             return None
         if exif_dict is not None:
             exif = {
@@ -190,13 +187,9 @@ def add_suffix_to_file(file, exif_date):
         suffix = re.sub(r"\D", "", str(exif_date))
     else:
         suffix = "no_exif"
-    new_file = file.replace(".", "_" + suffix + "_" + str(
-        current_milli_time()) + ".")
+    new_file = file.replace(".",
+                            "_" + suffix + "_" + str(datetime.datetime.now().timestamp()) + ".")
     return new_file
-
-
-def current_milli_time():
-    return int(round(time.time() * 1000))
 
 
 def get_creation_date_by_harchoir(filename):

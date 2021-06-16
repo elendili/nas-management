@@ -193,12 +193,11 @@ def exit_f():
     if timings:
         logging.info("Timings sum: %s" % sum(timings))
         logging.info("Average time: %s" % sum(timings) / len(timings))
-    logging.info("Total time: %s" % str(current_milli_time() - start_execution_time))
+    logging.info("Total time: %s" % str(datetime.datetime.now() - start_execution_time))
 
-
-start_execution_time = current_milli_time()
 
 if __name__ == "__main__":
+    start_execution_time = datetime.datetime.now()
     prepare_logging()
     atexit.register(exit_f)
     assert len(sys.argv) > 1, "define path to arguments file"
