@@ -2,7 +2,7 @@ local_root: /Volumes/
 remote_root: /volume1/
 input_folders: [
 #    photo/byYears/1904/01
-    photo/unknown2/
+    for-import-on-nas/exportFromMBP13_June2021
 ]
 filter_by_filename_regex: .*
 #skip_till_match: .*_5129\..*

@@ -84,7 +84,7 @@ def get_file_extension(file_path) -> str:
 
 def get_date_from_string(pattern, string):
     try:
-        f = re.search(pattern, string)
+        f = list(re.finditer(pattern, string))[-1]
         if f:
             m = f.group("month")
             if m.isnumeric():
