@@ -142,9 +142,10 @@ def process_file(root, file, local_input_folder, local_output_folder):
 
 def process_folder(local_input_folder,
                    local_output_folder,
-                   filter_by_filename_regex,
+                   filter_filename_by_regex,
                    skip_till_match
                    ):
+
     os.makedirs(local_output_folder, exist_ok=True)
     process_flag = False
     for root, dirs, files in os.walk(local_input_folder, onerror=on_error):
@@ -158,7 +159,7 @@ def process_folder(local_input_folder,
                         continue
 
                 if not file.startswith("."):
-                    if re.fullmatch(filter_by_filename_regex, file):
+                    if re.fullmatch(filter_filename_by_regex, file):
                         logging.info("File %s to be processed", file_path)
                         process_file(root, file,
                                      local_input_folder,
@@ -167,7 +168,7 @@ def process_folder(local_input_folder,
                     else:
                         logging.info(
                             "File '%s' was ignored,because doesn't match pattern %s." % (
-                                file_path, filter_by_filename_regex))
+                                file_path, filter_filename_by_regex))
                 else:
                     logging.info("File '%s' was ignored, because starts with ." % file_path)
 
@@ -208,18 +209,30 @@ if __name__ == "__main__":
         local_root = data["local_root"]
         remote_root = data["remote_root"]
         output_folder = data["output_folder"]
-        filter_by_filename_regex = data["filter_by_filename_regex"]
+        filter_filename_by_regex = data["filter_filename_by_regex"]
         skip_till_match = data.get("skip_till_match", r".*")
         connection_data = data["ssh-connection-data"]
+        rename_source_paths = data["rename_source_paths"]
 
-    with spur.SshShell(**connection_data) as shell:
+    if rename_source_paths:
+        # rename
+        import fix_files_and_folder_names
+        logging.info("renaming started -----------")
         for input_folder in data["input_folders"]:
             _local_input_folder = join(local_root, input_folder)
+            for root, dirs, files in os.walk(_local_input_folder, onerror=on_error):
+                fix_files_and_folder_names.rename_loop(dirs)
+                fix_files_and_folder_names.rename_loop(files)
+        logging.info("renaming finished -----------")
+
+    # migration
+    with spur.SshShell(**connection_data) as shell:
+        for input_folder in data["input_folders"]:
             assert remote_exists(_local_input_folder), \
                 "input folder " + _local_input_folder + " not exist"
             _local_output_folder = join(local_root, output_folder)
             process_folder(_local_input_folder,
                            _local_output_folder,
-                           filter_by_filename_regex,
+                           filter_filename_by_regex,
                            skip_till_match
                            )

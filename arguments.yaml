@@ -4,10 +4,12 @@ input_folders: [
 #    photo/byYears/1904/01
     for-import-on-nas/exportFromMBP13_June2021
 ]
-filter_by_filename_regex: .*
-#skip_till_match: .*_5129\..*
 #output_folder: for-import-on-nas/outJune2021
 output_folder: photo/byYears
+
+#skip_till_match: .*_5129\..* # when processing is stopped on a half-way - define regex so migration will start from matched path
+filter_filename_by_regex: .* # migrate files only when match given filter
+rename_source_paths: true # it's needed when files/folders are in Russian or just ugly
 
 ssh-connection-data:
   hostname: 192.168.1.36

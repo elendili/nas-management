@@ -2,11 +2,10 @@
 import os
 import sys
 from nm_tools import *
+from os.path import join
 from unidecode import unidecode
 
-target_folder = sys.argv[1]
-if not target_folder:
-    raise Exception("Define folder path")
+
 
 
 def process_name(name):
@@ -35,7 +34,11 @@ def rename_loop(l):
             l[index] = new_e
 
 
-for root, dirs, files in os.walk(target_folder):
-    if '@eaDir' not in root:
-        rename_loop(dirs)
-        rename_loop(files)
+if __name__ == "__main__":
+    target_folder = sys.argv[1]
+    if not target_folder:
+        raise Exception("Define folder path")
+    for root, dirs, files in os.walk(target_folder):
+        if '@eaDir' not in root:
+            rename_loop(dirs)
+            rename_loop(files)
