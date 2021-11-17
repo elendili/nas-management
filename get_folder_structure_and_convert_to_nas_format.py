@@ -220,8 +220,8 @@ if __name__ == "__main__":
         for input_folder in data["input_folders"]:
             _local_input_folder = join(local_root, input_folder)
             for root, dirs, files in os.walk(_local_input_folder, onerror=on_error):
-                fix_files_and_folder_names.rename_loop(dirs)
-                fix_files_and_folder_names.rename_loop(files)
+                fix_files_and_folder_names.rename_loop(root, dirs)
+                fix_files_and_folder_names.rename_loop(root, files)
         logging.info("renaming finished -----------")
 
     # migration

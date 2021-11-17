@@ -23,15 +23,15 @@ def process_name(name):
     return out
 
 
-def rename_loop(l):
-    for index, old_e in enumerate(l):
+def rename_loop(root, entries_list):
+    for index, old_e in enumerate(entries_list):
         new_e = process_name(old_e)
         if new_e != old_e:
             old_full_e = join(root, old_e)
             new_full_e = join(root, new_e)
             os.rename(old_full_e, new_full_e)
             print(old_e, " -> ", new_e)
-            l[index] = new_e
+            entries_list[index] = new_e
 
 
 if __name__ == "__main__":
@@ -40,5 +40,5 @@ if __name__ == "__main__":
         raise Exception("Define folder path")
     for root, dirs, files in os.walk(target_folder):
         if '@eaDir' not in root:
-            rename_loop(dirs)
-            rename_loop(files)
+            rename_loop(root, dirs)
+            rename_loop(root, files)
