@@ -85,36 +85,40 @@ def are_equal(f1, f2):
         return False
 
 
+def update_file_extension(original_path, file_name):
+    ce = "".join(Path(file_name).suffixes)
+    guessed_extension = guess_file_extension(original_path)
+
+    if guessed_extension.lower() in [".jpg", ".jpeg"] \
+            and ce.lower() in [".jpg", ".jpeg"]:  # avoid useless rename
+        return file_name
+
+    out = file_name.replace(ce, guessed_extension)
+    if out.lower() != file_name.lower():
+        print("extension of %s was changed from %s to %s" %
+              (original_path, ce, guessed_extension))
+        return out
+    else:
+        return file_name
+
+
+def update_original_file_name(root, file):
+    original_path = join(root, file)
+    assert exists(original_path)
+
+    new_file = re.sub(r"[()]+", "", file)  # no parentheses
+    new_file = re.sub(r"\s+", "_", new_file)  # no spaces
+
+    dest_file = update_file_extension(original_path, new_file)
+    new_path = join(root, dest_file)
+    if file.lower() != dest_file.lower():
+        print("renamed %s to %s" % (file, dest_file))
+        os.rename(original_path, new_path)
+    return new_path, dest_file
+
+
 def process_file(root, file, local_input_folder, local_output_folder):
-    def update_original_file_name():
-        original_path = join(root, file)
-        new_file = re.sub(r"[()]+", "", file)  # no parentheses
-        new_file = re.sub(r"\s+", "_", new_file)  # no spaces
-
-        def update_file_extension(file_name):
-            ce = "".join(Path(file_name).suffixes)
-            guessed_e = get_file_extension(original_path)
-
-            if guessed_e.lower() in [".jpg", ".jpeg"] \
-                    and ce.lower() in [".jpg", ".jpeg"]:  # avoid useless rename
-                return file_name
-
-            out = file_name.replace(ce, guessed_e)
-            if out.lower() != file_name.lower():
-                print("extension of %s was changed from %s to %s" %
-                      (file, ce, guessed_e))
-                return out
-            else:
-                return file_name
-
-        dest_file = update_file_extension(new_file)
-        new_path = join(root, dest_file)
-        if file.lower() != dest_file.lower():
-            print("renamed %s to %s" % (file, dest_file))
-            os.rename(original_path, new_path)
-        return new_path, dest_file
-
-    input_path, new_file = update_original_file_name()
+    input_path, new_file = update_original_file_name(root, file)
 
     file_datetime = get_file_datetime(input_path)
     if file_datetime:
@@ -161,6 +165,7 @@ def process_folder(local_input_folder,
                 if not file.startswith("."):
                     if re.fullmatch(filter_filename_by_regex, file):
                         logging.info("File %s to be processed", file_path)
+                        assert exists(file_path), file_path+" not found"
                         process_file(root, file,
                                      local_input_folder,
                                      local_output_folder)
@@ -227,6 +232,7 @@ if __name__ == "__main__":
     # migration
     with spur.SshShell(**connection_data) as shell:
         for input_folder in data["input_folders"]:
+            _local_input_folder = join(local_root, input_folder)
             assert remote_exists(_local_input_folder), \
                 "input folder " + _local_input_folder + " not exist"
             _local_output_folder = join(local_root, output_folder)

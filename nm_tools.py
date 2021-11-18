@@ -71,12 +71,15 @@ def get_file_datetime(file_path) -> datetime.datetime:
     logging.error("No exif or folder date to extract for " + file_path)
 
 
-def get_file_extension(file_path) -> str:
-    guessed = filetype.guess(file_path)
-    if guessed:
-        return "." + guessed.extension
-    else:
-        return splitext(file_path)[-1]
+def guess_file_extension(file_path) -> str:
+    try:
+        guessed = filetype.guess(file_path)
+        if guessed:
+            return "." + guessed.extension
+    except Exception as e:
+        logging.error("Error on getting filetype from " + file_path, exc_info=e)
+        # raise e
+    return splitext(file_path)[-1]  # return original ext from provided string
 
 
 def get_date_from_string(pattern, string):
